@@ -3,37 +3,30 @@ import pandas as pd
 import streamlit as st
 from streamlit_navigation_bar import st_navbar
 
-page = st_navbar(["Home", "Documentation", "Examples", "Community", "About"])
-st.write(page)
+styles = {  
+    "nav": {
+        "height": "3.8rem"
+    },
 
+}
 
-st.title("Bitcoin Predictor")
-st.header("HEY GUYY")
-st.subheader("hey")
+options = {
+    "show_menu": True,
+    "show_sidebar": False,
+}
 
-st.markdown("This is _Markdown_")
-st.caption("small text")
+pages = [
+    st.Page("pages/home.py", title="Home"),
+    st.Page("pages/prediction.py", title="Predict Result"),
+    st.Page("pages/community.py", title="Data From The Community")
+]
 
-st.write("UWOOOOO 😊")  
+page = st_navbar(
+    pages,
+    styles=styles,
+    options=options,
 
-code_example = """
-def greet(name):
-    print('hello', name)
+)
 
-"""
-
-st.code(code_example, language="python")
-
-st.divider()
-
-st.subheader("Dataframe is coming")
-df = pd.DataFrame({
-    "Name": ['Alice', 'Bob', 'Charlie', 'David'],
-    "Age": [25, 32, 37, 45],
-    "Occupation": ["Engineer", "Doctor", "Artist", "Cheif"]
-})
-
-st.dataframe(df)
-
-pressed = st.button("Press me sensei")
-print(pressed)
+if page:
+    page.run()
