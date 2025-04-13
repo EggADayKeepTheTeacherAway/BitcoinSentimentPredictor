@@ -1,43 +1,34 @@
 import streamlit as st
-import pandas as pd
 import pathlib
 
-
+# Load CSS
 def load_css(file_path):
     with open(file_path) as f:
         st.html(f"<style>{f.read()}</style>")
 
-# Load the external CSS
 css_path = pathlib.Path("public/styles.css")
 load_css(css_path)
 
-st.title("Bitcoin Predictor")
-st.header("HEY GUYY")
-st.subheader("hey")
 
-st.markdown("This is _Markdown_")
-st.caption("small text")
+st.html("""
+<div class="hero">
+    <h1>Bitcoin Predictor</h1>
+</div>
+""")
 
-st.write("UWOOOOO 😊")  
-
-code_example = """
-def greet(name):
-    print('hello', name)
-
-"""
-
-st.code(code_example, language="python")
-
-st.divider()
-
-st.subheader("Dataframe is coming")
-df = pd.DataFrame({
-    "Name": ['Alice', 'Bob', 'Charlie', 'David'],
-    "Age": [25, 32, 37, 45],
-    "Occupation": ["Engineer", "Doctor", "Artist", "Cheif"]
-})
-
-st.dataframe(df)
-
-st.button("Press me sensei", key="green")
-st.header("Header with divider", divider="rainbow")
+st.html("""
+<div class="page-grid">
+    <div class="card">
+        <h2>Predict Result</h2>
+        <p>Get a prediction for future Bitcoin trends.</p>
+    </div>
+    <div class="card">
+        <h2>Data From The Community</h2>
+        <p>Help improve the model with your comments (idk I need to ask Apple WTF should I do in this page).</p>
+    </div>
+    <div class="card">
+        <h2>API</h2>
+        <p>Access our prediction engine programmatically via API.</p>
+    </div>
+</div>
+""")

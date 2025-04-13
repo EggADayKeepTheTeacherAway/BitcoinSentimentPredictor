@@ -1,3 +1,73 @@
+
 .st-key-green button {
     background-color: green;
 }
+
+.stMain {
+   background-color: #101317;
+}
+
+.hero {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 30vh; 
+    text-align: center;
+    animation: scaleUp 0.8s ease-out;
+}
+
+
+@keyframes scaleUp {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+
+.hero h1 {
+    font-size: 3.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+
+body {
+    background-color: #0b0e12;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+h1 {
+    text-align: center;
+    font-size: 3rem;
+    margin-top: 2rem;
+}
+
+.page-grid {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.card {
+    background-color: #1c1f20;
+    padding: 2rem;
+    padding-top: 0px;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    width: 300px;
+    text-align: center;
+    transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
