@@ -19,3 +19,8 @@ def get_compound(text):
     scores = sid.polarity_scores(text)
     compound_score = scores['compound']
     return compound_score
+
+test = "shit"
+print(get_sentiment("SEX?"))
+print(get_sentiment(test))
+print(get_compound(test))

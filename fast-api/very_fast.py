@@ -4,9 +4,14 @@ import requests
 import csv
 
 import praw
+import nltk
+
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi import Query
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
+nltk.download('vader_lexicon')
 
 load_dotenv()
 
@@ -58,7 +63,6 @@ async def get_reddit_post():
     CLIENT_SECRET = os.getenv("CLIENT_SECRET")
     USER_AGENT = os.getenv("USER_AGENT")
 
-    print(CLIENT_ID)
     reddit = praw.Reddit(
         client_id=CLIENT_ID,
         client_secret=CLIENT_SECRET,
@@ -91,3 +95,30 @@ async def get_reddit_post():
         count += 1
 
     return data
+
+
+@app.get("/sentiment")
+async def get_sentiment(text: str = Query(..., description="The input text to analyze")):
+    """
+    Get the sentiment result.
+    """
+    sid = SentimentIntensityAnalyzer()
+    scores = sid.polarity_scores(text)
+    compound_score = scores['compound']
+    if compound_score > 0.05:
+        return 'positive'
+    elif compound_score < -0.05:
+        return 'negative'
+    else:
+        return 'neutral'
+
+
+@app.get("/compound-score")
+def get_compound(text: str = Query(..., description="The input text to analyze")):
+    sid = SentimentIntensityAnalyzer()
+    scores = sid.polarity_scores(text)
+    compound_score = scores['compound']
+    return compound_score
+
+
+# uvicorn very_fast:app --port 6969 --reload
