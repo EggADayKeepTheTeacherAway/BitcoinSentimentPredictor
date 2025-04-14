@@ -1,14 +1,13 @@
 import os
 import datetime
 import requests
-import csv
 
+import uvicorn
 import praw
 import nltk
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
-from fastapi import Query
+from fastapi import FastAPI, Query
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 nltk.download('vader_lexicon')
@@ -105,20 +104,15 @@ async def get_sentiment(text: str = Query(..., description="The input text to an
     sid = SentimentIntensityAnalyzer()
     scores = sid.polarity_scores(text)
     compound_score = scores['compound']
+    result = ""
     if compound_score > 0.05:
-        return 'positive'
+        result = 'positive'
     elif compound_score < -0.05:
-        return 'negative'
+        result = 'negative'
     else:
-        return 'neutral'
+        result = 'neutral'
+    return {"result": result, "score": scores}
 
 
-@app.get("/compound-score")
-def get_compound(text: str = Query(..., description="The input text to analyze")):
-    sid = SentimentIntensityAnalyzer()
-    scores = sid.polarity_scores(text)
-    compound_score = scores['compound']
-    return compound_score
-
-
-# uvicorn very_fast:app --port 6969 --reload
+if __name__ == "__main__":
+    uvicorn.run("very_fast:app", host="127.0.0.1", port=6969, reload=True)
