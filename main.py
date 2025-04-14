@@ -16,6 +16,7 @@ options = {
 }
 
 st.set_page_config(layout="wide")
+
     
 pages = [
     st.Page("pages/home.py", title="Home"),
@@ -33,3 +34,4 @@ page = st_navbar(
 
 if page:
     page.run()
+
