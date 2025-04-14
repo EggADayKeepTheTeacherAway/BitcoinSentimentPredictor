@@ -1,8 +1,7 @@
 import pathlib
 import streamlit as st
 import requests
-import json
-import pandas as pd
+
 
 def load_css(file_path):
     with open(file_path) as f:
@@ -15,7 +14,7 @@ load_css(css_path)
 BASE_URL = "http://127.0.0.1:6969"
 
 st.html("""
-<h1>Bitcoin Predictor API Documentation</h1>
+<h1 class="hero-animation">Bitcoin Predictor API Documentation</h1>
 <p class="intro-text">
     This documentation provides information about the available endpoints in the Bitcoin Predictor API.
     You can test each endpoint directly from this interface by clicking the 'Execute' button.

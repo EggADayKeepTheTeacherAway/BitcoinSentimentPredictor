@@ -11,7 +11,7 @@ load_css(css_path)
 
 
 st.html("""
-<div class="hero">
+<div class="hero hero-animation">
     <h1>Bitcoin Predictor</h1>
 </div>
 """)

@@ -13,9 +13,15 @@
     align-items: center;
     height: 30vh; 
     text-align: center;
+}
+
+.hero-animation {
     animation: scaleUp 0.8s ease-out;
 }
 
+.intro-text {
+    margin-top: 4rem;
+}
 
 @keyframes scaleUp {
     from {
