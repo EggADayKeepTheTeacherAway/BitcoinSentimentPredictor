@@ -19,16 +19,16 @@ st.html("""
 st.html("""
 <div class="page-grid">
     <div class="card">
-        <h2>Predict Result</h2>
-        <p>Get a prediction for future Bitcoin trends.</p>
+        <h2>Bitcoin</h2>
+        <p>Get a prediction for future Bitcoin trends and today price.</p>
     </div>
     <div class="card">
-        <h2>Data From The Community</h2>
-        <p>Help improve the model with your comments (idk I need to ask Apple WTF should I do in this page).</p>
+        <h2>Sentiment Analysis</h2>
+        <p>See that your comment positive or negative.</p>
     </div>
     <div class="card">
         <h2>API</h2>
-        <p>Access our prediction engine programmatically via API.</p>
+        <p>See out API doccumentation here.</p>
     </div>
 </div>
 """)

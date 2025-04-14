@@ -99,7 +99,7 @@ async def get_reddit_post():
 @app.get("/sentiment")
 async def get_sentiment(text: str = Query(..., description="The input text to analyze")):
     """
-    Get the sentiment result.
+    Get the sentiment result and score.
     """
     sid = SentimentIntensityAnalyzer()
     scores = sid.polarity_scores(text)

@@ -20,8 +20,8 @@ st.set_page_config(layout="wide")
     
 pages = [
     st.Page("pages/home.py", title="Home"),
-    st.Page("pages/prediction.py", title="Predict Result"),
-    st.Page("pages/community.py", title="Data From The Community"),
+    st.Page("pages/prediction.py", title="Bitcoin"),
+    st.Page("pages/community.py", title="Sentiment Analysis"),
     st.Page("pages/api.py", title="API"),
 ]
 
