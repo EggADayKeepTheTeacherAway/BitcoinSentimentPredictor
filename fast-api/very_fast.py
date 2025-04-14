@@ -45,7 +45,7 @@ async def get_bitcoin_price():
 
         csv_data = [] 
         for timestamp, price in prices:
-            date = datetime.datetime.fromtimestamp(timestamp / 1000)  # convert milliseconds to seconds
+            date = datetime.datetime.fromtimestamp(timestamp / 1000, tz=datetime.timezone.utc)
             formatted_date = date.strftime("%Y-%m-%d %H:%M")
             csv_data.append({"date": formatted_date, "price": price})
 

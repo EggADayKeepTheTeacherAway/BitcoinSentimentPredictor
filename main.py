@@ -11,7 +11,7 @@ styles = {
 }
 
 options = {
-    "show_menu": False,
+    "show_menu": True,
     "show_sidebar": False,
 }
 
