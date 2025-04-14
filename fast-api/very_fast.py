@@ -80,7 +80,7 @@ async def get_reddit_post():
 
         data.append({
             "id": submission.id,
-            "time": datetime.datetime.utcfromtimestamp(submission.created_utc),
+            "time": datetime.datetime.fromtimestamp(submission.created_utc, tz=datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
             "url": submission.url,
             "title": submission.title,
             "upvote": submission.score,
