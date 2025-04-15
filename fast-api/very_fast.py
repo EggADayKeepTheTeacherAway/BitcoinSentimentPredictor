@@ -53,7 +53,7 @@ async def get_bitcoin_price():
 
 
 @app.get("/reddit")
-async def get_reddit_post():
+async def get_reddit_post(limit: int = Query(10000, description="Maximum number of posts to retrieve")):
     """
     Get the reddit post relate to bitcoin.
     """
@@ -69,7 +69,7 @@ async def get_reddit_post():
     )
 
     subreddit_name = "bitcoin"  # Change this to any subreddit
-    num_posts = 10_000  # Target number of posts
+    num_posts = limit  # Target number of posts
 
     data = []
     count = 0
@@ -113,6 +113,7 @@ async def get_sentiment(text: str = Query(..., description="The input text to an
         result = 'neutral'
     return {"result": result, "score": scores}
 
+# uvicorn very_fast:app --port 6969 --reload
 
 if __name__ == "__main__":
     uvicorn.run("very_fast:app", host="127.0.0.1", port=6969, reload=True)

@@ -4,7 +4,6 @@ import pandas as pd
 import requests
 import plotly.graph_objects as go
 from datetime import datetime
-import time
 
 def load_css(file_path):
     with open(file_path) as f:

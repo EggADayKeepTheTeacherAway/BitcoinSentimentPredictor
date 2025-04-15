@@ -1,7 +1,8 @@
+import requests
 import streamlit as st
 import pathlib
 
-# Load CSS
+
 def load_css(file_path):
     with open(file_path) as f:
         st.html(f"<style>{f.read()}</style>")

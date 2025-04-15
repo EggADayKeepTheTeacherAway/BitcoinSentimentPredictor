@@ -2,3 +2,10 @@ streamlit
 pandas
 numpy
 matplotlib
+plotly
+requests
+nltk
+uvicorn
+praw
+fastapi
+dotenv

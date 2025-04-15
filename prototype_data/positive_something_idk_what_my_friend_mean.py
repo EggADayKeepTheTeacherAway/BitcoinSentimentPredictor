@@ -20,7 +20,6 @@ def get_compound(text):
     compound_score = scores['compound']
     return compound_score
 
-test = "shit"
-print(get_sentiment("SEX?"))
+test = "My mom just die yesterday"
 print(get_sentiment(test))
 print(get_compound(test))
