@@ -21,15 +21,14 @@ st.html("""
 <div class="page-grid">
     <div class="card">
         <h2>Bitcoin</h2>
-        <p>Get a prediction for future Bitcoin trends and today price.</p>
-    </div>
+<p>Obtain detailed predictions for future trends in Bitcoin, along with the current price for today. Stay informed about market movements and insights to help you make informed investment decisions.</p>    </div>
     <div class="card">
         <h2>Sentiment Analysis</h2>
-        <p>See that your comment positive or negative.</p>
+        <p>See the analysis result of the emotional tone of any text. Discover whether the content is positive, negative, or neutral with detailed scoring and visualization of sentiment metrics.</p>
     </div>
     <div class="card">
         <h2>API</h2>
-        <p>See out API doccumentation here.</p>
+        <p>Integrate our powerful tools directly into your applications with our comprehensive API.</p>
     </div>
 </div>
 """)
