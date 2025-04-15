@@ -10,11 +10,85 @@ Sentiment data from 1,000 social media posts mentioning Bitcoin. Sentiment will 
 Historical Bitcoin data CoinGecko API
 
 ## API to be provided to users
-We aim to answer the following questions:
+1. Get the prediction result (Bitcoin price will go up or down).
+2. Get the last 30 days of Bitcoin prices.
+3. Get the Reddit post related to Bitcoin.
+4. Analyze the sentiment of provided text using NLTK's VADER sentiment analyzer.
 
-What is Bitcoin's predicted short-term price movement (up or down) based on recent sentiment?
-What is the confidence level of this prediction?
-Therefore, we will predict Bitcoin's short-term price movement (up or down) with a confidence level based on recent sentiment.
+## Installation Guide:
+
+Clone this repository
+```
+git clone <repository link>
+```
+
+Create Python environment
+```
+python -m venv .venv
+```
+
+Activate the virtual environment
+
+On Linux or MacOS
+
+```
+source venv/bin/activate
+```
+
+On Windows
+
+```
+venv\Scripts\activate
+```
+
+Install All packages
+
+```
+pip install -r requirements.txt
+```
+
+Set Values For Externalized Variables
+
+For macOS/Linux
+
+```
+cp sample.env .env
+```
+For Windows
+
+```
+copy sample.env .env
+```
+
+## Running the Application
+
+1. Activate the virtual environment
+      
+   On Linux or MacOS
+   ```
+   source venv/bin/activate
+   ```
+   On Windows
+   ```
+   venv\Scripts\activate
+   ```
+
+2. Use this command to run the sever the default server is [localhost:8501](http://localhost:8501)
+  ```
+  streamlit run main.py
+  ```
+
+## Running the API server
+
+1. Change dir
+  ```
+  cd ./fast-api
+  ```
+
+2. Run the server the default server is [localhost:6969](http://localhost:6969)
+  ```
+  uvicorn very_fast:app --port 6969 --reload
+  ```
 
 ## Member
 1. Kasidet Uthaiwiwatkul
