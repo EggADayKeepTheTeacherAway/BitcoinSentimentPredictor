@@ -94,7 +94,7 @@ if "current_post" in st.session_state and st.session_state.current_post:
             st.html(f"""
             <div style="padding: 15px; border-radius: 5px; background-color: {result_color}20; margin-top: 10px;">
                 <h4>Sentiment Analysis</h4>
-                <p>Your comment has a <span style="color: {result_color}; font-weight: bold;">{result}</span> sentiment.</p>
+                <p>Your comment has a <span class="{result_color}"; style="color: {result_color}; font-weight: bold;">{result}</span> sentiment.</p>
                 <p>Sentiment score: {score:.3f}</p>
                 <div style="display: flex; align-items: center; width: 100%; height: 15px; margin: 10px 0;">
                     <div style="width: 100%; height:15px; background-color: #f0f0f0; border-radius: 10px; position: relative;">

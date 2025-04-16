@@ -94,3 +94,16 @@ def page(request):
 
         context.close()
         browser.close()
+
+
+if IS_DIRECT_RUN:
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        context = browser.new_context()
+        page = context.new_page()
+        page.set_default_navigation_timeout(60000)
+        page.set_default_timeout(30000)
+        test_can_switch_navbar(page)
+        page.close()
+        context.close()
+        browser.close()

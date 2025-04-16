@@ -53,6 +53,63 @@ def test_bitcoin_dashboard_refresh(page: Page):
     assert delta_seconds >= 3, f"Expected at least 3 seconds between timestamps, got {delta_seconds:.2f}"
 
 
+def test_sentiment_positive_submit(page: Page):
+    """
+    Test submit behavior of Sentiment Analysis by checking that the result will be positive and will show to the user.
+    """
+    wait_page_loading(page)
+
+    navbar_iframe = page.frame_locator("iframe[title='streamlit_navigation_bar.st_navbar']")
+    navbar_items = navbar_iframe.locator("li a, a.nav-link").all()
+    navbar_items[2:][0].click()
+
+    page.wait_for_selector("button", timeout=30000)
+
+    page.get_by_label("Put your comment here:").fill('I love Bitcoin')
+
+    page.locator("button[data-testid='stBaseButton-secondary']").all()[0].click()
+
+    page.wait_for_selector(".green", timeout=30000)
+    
+ 
+def test_sentiment_negative_submit(page: Page):
+    """
+    Test submit behavior of Sentiment Analysis by checking that the result will be negative and will show to the user.
+    """
+    wait_page_loading(page)
+
+    navbar_iframe = page.frame_locator("iframe[title='streamlit_navigation_bar.st_navbar']")
+    navbar_items = navbar_iframe.locator("li a, a.nav-link").all()
+    navbar_items[2:][0].click()
+
+    page.wait_for_selector("button", timeout=30000)
+
+    page.get_by_label("Put your comment here:").fill('I hate you')
+
+    page.locator("button[data-testid='stBaseButton-secondary']").all()[0].click()
+
+    page.wait_for_selector(".red", timeout=30000)
+    
+
+def test_sentiment_neutral_submit(page: Page):
+    """
+    Test submit behavior of Sentiment Analysis by checking that the result will be neutral and will show to the user.
+    """
+    wait_page_loading(page)
+
+    navbar_iframe = page.frame_locator("iframe[title='streamlit_navigation_bar.st_navbar']")
+    navbar_items = navbar_iframe.locator("li a, a.nav-link").all()
+    navbar_items[2:][0].click()
+
+    page.wait_for_selector("button", timeout=30000)
+    
+    page.get_by_label("Put your comment here:").fill('Banana')
+
+    page.locator("button[data-testid='stBaseButton-secondary']").all()[0].click()
+
+    page.wait_for_selector(".gray", timeout=30000)
+
+
 @pytest.fixture(scope="function")
 def page(request):
     """
@@ -102,5 +159,18 @@ def page(request):
                 else:
                     print(f"Could not rename video: {video_file}")
 
+        context.close()
+        browser.close()
+
+
+if IS_DIRECT_RUN:
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        context = browser.new_context()
+        page = context.new_page()
+        page.set_default_navigation_timeout(60000)
+        page.set_default_timeout(30000)
+        test_sentiment_negative_submit(page)
+        page.close()
         context.close()
         browser.close()
