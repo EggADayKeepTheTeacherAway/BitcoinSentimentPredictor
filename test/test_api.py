@@ -8,6 +8,7 @@ from playwright.sync_api import Page, expect
 BASE_URL = "http://127.0.0.1:6969"
 
 
+# /bitcoin
 @pytest.fixture(scope="module")
 def bitcoin_api_data():
     response = requests.get(f"{BASE_URL}/bitcoin")
@@ -29,6 +30,7 @@ def test_bitcoin_api_item_format(bitcoin_api_data):
             assert False, f"Invalid date format: {item['date']}"
         assert isinstance(item["price"], (float, int)), "Price should be a number"
 
+# /reddit
 
 @pytest.fixture(scope="module")
 def reddit_api_data():
@@ -76,7 +78,7 @@ def test_reddit_api_length_default():
     assert response.status_code == 200
     assert len(response.json()) == 985
 
-
+# /sentiment
 def test_sentiment_api_status():
     response = requests.get(f"{BASE_URL}/sentiment?text=Omega")
     assert response.status_code == 200
@@ -99,7 +101,13 @@ def test_sentiment_api_item_format():
     
     assert isinstance(data["result"], str), "result should be a str"
     assert isinstance(data["score"], dict), "score should be a JSON"
-    
+
+
+def test_sentiment_api_score_item_format():
+    response = requests.get(f"{BASE_URL}/sentiment?text=Bitcoin%20is%20going%20to%20the%20moon!")
+    assert response.status_code == 200
+
+    data = response.json() 
     data_field = [key for key in data['score'].keys()]
     assert "neg" in data_field
     assert "neu" in data_field
@@ -110,3 +118,29 @@ def test_sentiment_api_item_format():
     assert isinstance(data['score']["neu"], (int, float)), "neu should be a number"
     assert isinstance(data['score']["pos"], (int, float)), "pos should be a number"
     assert isinstance(data['score']["compound"], (int, float)), "compound should be a number"
+
+
+# /result
+def test_model_result_api_status():
+    response = requests.get(f"{BASE_URL}/result")
+    assert response.status_code == 200
+
+
+def test_model_result_api_type():
+    response = requests.get(f"{BASE_URL}/result")
+    assert response.status_code == 200
+    assert isinstance(response.json(), dict), "Response should be a JSON"
+
+
+def test_model_result_api_item_format():
+    response = requests.get(f"{BASE_URL}/result")
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert "direction" in data
+    assert "confident" in data
+    
+    assert isinstance(data["direction"], str), "direction should be a str"
+    assert isinstance(data["confident"], (float, int)), "confident should be a number"
+    
