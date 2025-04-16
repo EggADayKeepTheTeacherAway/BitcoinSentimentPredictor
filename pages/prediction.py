@@ -119,7 +119,7 @@ with dashboard_container:
                 <div style="font-size: 3.5rem; margin: 15px 0;">
                     {'📈' if direction == 'up' else '📉'}
                 </div>
-                <p style="font-size: 1.2rem;">Confidence: <strong>{confidence}</strong></p>
+                <p style="font-size: 1.2rem;">Confidence: <strong>{confidence}%</strong></p>
             </div>
             """
             st.html(prediction_card)

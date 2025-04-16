@@ -23,7 +23,7 @@ async def get_predict_result():
     """
     return {
         "direction": "down",
-        "confident": "70%",
+        "confident": 70.4,
         }
 
 
