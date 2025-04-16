@@ -114,7 +114,7 @@ with dashboard_container:
             confidence = prediction.get('confident', '0%')
             
             prediction_card = f"""
-            <div style="background-color: {'#38ab38' if direction == 'up' else '#db4444'}; padding: 20px; border-radius: 10px; text-align: center;">
+            <div class="hi-playwright" style="background-color: {'#38ab38' if direction == 'up' else '#db4444'}; padding: 20px; border-radius: 10px; text-align: center;">
                 <h3>Prediction: {direction.upper()}</h3>
                 <div style="font-size: 3.5rem; margin: 15px 0;">
                     {'📈' if direction == 'up' else '📉'}
