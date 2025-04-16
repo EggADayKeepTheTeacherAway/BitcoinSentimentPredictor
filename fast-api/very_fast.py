@@ -30,7 +30,7 @@ async def get_predict_result():
 @app.get("/bitcoin")
 async def get_bitcoin_price():
     """
-    Get the last 30 days of bitcoin price.
+        Get the last 30 days of bitcoin price.
     """
     coin_id = "bitcoin"
     vs_currency = "usd"
@@ -53,7 +53,7 @@ async def get_bitcoin_price():
 
 
 @app.get("/reddit")
-async def get_reddit_post(limit: int = Query(10000, description="Maximum number of posts to retrieve")):
+async def get_reddit_post(limit: int = Query(985, description="Maximum number of posts to retrieve")):
     """
     Get the reddit post relate to bitcoin.
     """

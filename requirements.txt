@@ -9,3 +9,4 @@ uvicorn
 praw
 fastapi
 dotenv
+pytest-playwright
