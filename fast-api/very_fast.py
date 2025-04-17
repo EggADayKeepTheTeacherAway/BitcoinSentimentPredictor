@@ -1,6 +1,10 @@
+import sys
 import os
 import datetime
 import requests
+
+# Add the parent directory to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import uvicorn
 import praw
@@ -10,23 +14,50 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Query
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
+from prototype_data.predict import preprocess_reddit_data, predict_next_day
+from tensorflow.keras.models import load_model
+import joblib
+
 nltk.download('vader_lexicon')
 
 load_dotenv()
 
 app = FastAPI()
 
+prototype_directory = os.path.abspath('../prototype_data')  # Adjust the relative path
+
+# Add the directory to sys.path
+sys.path.append(prototype_directory)
+
+model_path = os.path.join(prototype_directory, 'btc_gru_model.h5')
+scaler_path = os.path.join(prototype_directory, 'feature_scaler.pkl')
+market_data_path = os.path.join(prototype_directory, 'left_reddit_data.csv')
+bitcoin_data_path = os.path.join(prototype_directory, 'bitcoin_prices.csv')
+
+# Load the model and scaler
+loaded_model = load_model(model_path)
+loaded_scaler = joblib.load(scaler_path)
+
 @app.get("/result")
 async def get_predict_result():
     """
     Get the model result.
     """
+    new_market_data = preprocess_reddit_data(market_data_path, bitcoin_data_path)
+    prediction, confidence = predict_next_day(
+        new_market_data,
+        loaded_model,
+        loaded_scaler,
+        time_steps=2,
+        features=['Range', 'total_score', 'total_comments', 'average_upvote_ratio',
+                    'total_posts', 'percentage_negative',
+                    'percentage_neutral', 'percentage_positive']
+    )
     return {
-        "direction": "down",
-        "confident": 70.4,
-        }
-
-
+        "direction": prediction,
+        "confident": round(confidence * 100, 2),
+    }
+      
 @app.get("/bitcoin")
 async def get_bitcoin_price():
     """
@@ -68,7 +99,7 @@ async def get_reddit_post(limit: int = Query(985, description="Maximum number of
         user_agent=USER_AGENT
     )
 
-    subreddit_name = "bitcoin"  # Change this to any subreddit
+    subreddit_name = "bitcoin"
     num_posts = limit  # Target number of posts
 
     data = []
@@ -79,7 +110,7 @@ async def get_reddit_post(limit: int = Query(985, description="Maximum number of
 
     for submission in subreddit.new(limit=None):  # limit=None fetches as many as possible
         if count >= num_posts:
-            break  # Stop once we reach 10,000 posts
+            break
 
         data.append({
             "id": submission.id,
