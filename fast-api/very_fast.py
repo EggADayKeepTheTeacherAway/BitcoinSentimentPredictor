@@ -16,6 +16,7 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 from prototype_data.predict import preprocess_reddit_data, predict_next_day
 from tensorflow.keras.models import load_model
+import pandas as pd
 import joblib
 
 nltk.download('vader_lexicon')
@@ -31,8 +32,8 @@ sys.path.append(prototype_directory)
 
 model_path = os.path.join(prototype_directory, 'btc_gru_model.h5')
 scaler_path = os.path.join(prototype_directory, 'feature_scaler.pkl')
-market_data_path = os.path.join(prototype_directory, 'left_reddit_data.csv')
-bitcoin_data_path = os.path.join(prototype_directory, 'bitcoin_prices.csv')
+# market_data_path = os.path.join(prototype_directory, 'left_reddit_data.csv')
+# bitcoin_data_path = os.path.join(prototype_directory, 'bitcoin_prices.csv')
 
 # Load the model and scaler
 loaded_model = load_model(model_path)
@@ -41,9 +42,15 @@ loaded_scaler = joblib.load(scaler_path)
 @app.get("/result")
 async def get_predict_result():
     """
-    Get the model result.
+    Get the model result using dynamically fetched data.
     """
-    new_market_data = preprocess_reddit_data(market_data_path, bitcoin_data_path)
+    print("Starting prediction process with dynamic data...")
+    
+    reddit_data = await get_reddit_post(limit=985)
+    bitcoin_data = await get_bitcoin_price()
+    
+    new_market_data = preprocess_reddit_data(reddit_data, bitcoin_data)
+    
     prediction, confidence = predict_next_day(
         new_market_data,
         loaded_model,
@@ -53,6 +60,7 @@ async def get_predict_result():
                     'total_posts', 'percentage_negative',
                     'percentage_neutral', 'percentage_positive']
     )
+    
     return {
         "direction": prediction,
         "confident": round(confidence * 100, 2),

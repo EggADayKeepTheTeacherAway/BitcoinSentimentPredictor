@@ -10,27 +10,44 @@ def get_sentiment_local(text):
     compound = scores['compound']
     return 'positive' if compound > 0.05 else 'negative' if compound < -0.05 else 'neutral'
 
-def preprocess_reddit_data(file_path, bitcoin_prices_path):
+def preprocess_reddit_data(reddit_data, bitcoin_data):
     """
-    Optimized preprocessing that:
-    1. First filters to only recent dates needed
-    2. Then processes sentiment and aggregates
+    Preprocess Reddit and Bitcoin data for prediction.
+    - Accepts lists of dictionaries (not file paths)
     """
-    reddit_data = pd.read_csv(file_path, usecols=[
-        'Timestamp', 'Title', 'Text', 'Score', 'Comments', 'Upvote Ratio', 'ID'
-    ])
-    
-    reddit_data['Date'] = pd.to_datetime(reddit_data['Timestamp']).dt.date
-    recent_dates = sorted(reddit_data['Date'].unique(), reverse=True)[:2]
-    # print(f"Recent dates found: {recent_dates}")
-    
-    recent_data = reddit_data[reddit_data['Date'].isin(recent_dates)].copy()
-    
+
+    # Convert to DataFrame if needed
+    if isinstance(reddit_data, list):
+        reddit_df = pd.DataFrame(reddit_data)
+    else:
+        reddit_df = reddit_data.copy()
+
+    if isinstance(bitcoin_data, list):
+        bitcoin_df = pd.DataFrame(bitcoin_data)
+    else:
+        bitcoin_df = bitcoin_data.copy()
+
+    # Standardize column names
+    reddit_df.rename(columns={
+        'time': 'Timestamp',
+        'title': 'Title',
+        'text': 'Text',
+        'upvote': 'Score',
+        'num_comments': 'Comments',
+        'upvote_ratio': 'Upvote Ratio',
+        'id': 'ID'
+    }, inplace=True)
+
+    reddit_df['Date'] = pd.to_datetime(reddit_df['Timestamp']).dt.date
+    recent_dates = sorted(reddit_df['Date'].unique(), reverse=True)[:2]
+
+    recent_data = reddit_df[reddit_df['Date'].isin(recent_dates)].copy()
+
     recent_data['Sentiment'] = recent_data.apply(
-        lambda row: get_sentiment_local(f"{row['Title']} {row['Text']}"), 
+        lambda row: get_sentiment_local(f"{row['Title']} {row['Text']}"),
         axis=1
     )
-    
+
     agg_data = recent_data.groupby('Date').agg(
         total_score=('Score', 'sum'),
         total_comments=('Comments', 'sum'),
@@ -40,23 +57,24 @@ def preprocess_reddit_data(file_path, bitcoin_prices_path):
         percentage_neutral=('Sentiment', lambda x: (x == 'neutral').mean() * 100),
         percentage_positive=('Sentiment', lambda x: (x == 'positive').mean() * 100)
     ).reset_index()
-    
-    bitcoin_df = pd.read_csv(bitcoin_prices_path)
-    bitcoin_df['Date'] = pd.to_datetime(bitcoin_df['Date'], format='mixed').dt.date
+
+    # Convert bitcoin_data timestamp to date and prepare
+    bitcoin_df['Date'] = pd.to_datetime(bitcoin_df['date'], format='mixed').dt.date
     bitcoin_df = bitcoin_df[bitcoin_df['Date'].isin(recent_dates)]
-    
+
     bitcoin_agg = bitcoin_df.groupby('Date').agg(
-        Open=('Price (USD)', 'first'),
-        Close=('Price (USD)', 'last')
+        Open=('price', 'first'),
+        Close=('price', 'last')
     ).reset_index()
     bitcoin_agg['Range'] = bitcoin_agg['Close'] - bitcoin_agg['Open']
-    
+
     merged_data = pd.merge(agg_data, bitcoin_agg[['Date', 'Range']], on='Date', how='inner')
     merged_data = merged_data.sort_values('Date', ascending=False).head(2)
-    
+
     if len(merged_data) < 2:
         raise ValueError("Insufficient data - need at least 2 days of complete data")
     
+    print(merged_data)
     return merged_data.drop(columns=['Date'])
 
 def predict_next_day(new_data, model, scaler, time_steps=2, features=None):
