@@ -110,6 +110,54 @@ def test_sentiment_neutral_submit(page: Page):
     page.wait_for_selector(".gray", timeout=30000)
 
 
+def test_sentiment_next(page: Page):
+    """
+    Test next post button it should go to next post.
+    """
+    wait_page_loading(page)
+
+    navbar_iframe = page.frame_locator("iframe[title='streamlit_navigation_bar.st_navbar']")
+    navbar_items = navbar_iframe.locator("li a, a.nav-link").all()
+    navbar_items[2:][0].click()
+
+    page.wait_for_selector("button", timeout=30000)
+
+    title = page.locator(".stHeading").inner_text()
+
+    page.locator("button[data-testid='stBaseButton-secondary']").all()[1].click()
+
+    page.locator("button[data-testid='stBaseButton-secondary']").all()[1].click()
+
+    time.sleep(2)
+
+    next_title = page.locator(".stHeading").inner_text()
+
+    assert title != next_title
+
+
+def test_api_excute_button(page: Page):
+    wait_page_loading(page)
+
+    navbar_iframe = page.frame_locator("iframe[title='streamlit_navigation_bar.st_navbar']")
+    navbar_items = navbar_iframe.locator("li a, a.nav-link").all()
+    navbar_items[3:][0].click()
+
+    page.wait_for_selector(".stExpander", timeout=30000)
+
+    dropdowns = page.locator(".stExpander").all()
+
+    buttons = page.locator("button[data-testid='stBaseButton-secondary']").all()
+
+    for i in range(len(dropdowns)):
+        dropdowns[i].click()
+        buttons[i].click()
+        
+        page.wait_for_selector(".stJson", timeout=30000)
+
+        time.sleep(2)
+
+
+
 @pytest.fixture(scope="function")
 def page(request):
     """
@@ -170,7 +218,7 @@ if IS_DIRECT_RUN:
         page = context.new_page()
         page.set_default_navigation_timeout(60000)
         page.set_default_timeout(30000)
-        test_sentiment_negative_submit(page)
+        test_api_excute_button(page)
         page.close()
         context.close()
         browser.close()
