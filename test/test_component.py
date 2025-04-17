@@ -1,9 +1,9 @@
 import os
 import pytest
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from playwright.sync_api import Page, expect, sync_playwright
+from playwright.sync_api import Page, sync_playwright
 
 IS_DIRECT_RUN = __name__ == "__main__"
 
@@ -71,7 +71,10 @@ def test_sentiment_positive_submit(page: Page):
 
     page.wait_for_selector(".green", timeout=30000)
     
- 
+    page.locator(".green").scroll_into_view_if_needed()
+
+    time.sleep(2)
+
 def test_sentiment_negative_submit(page: Page):
     """
     Test submit behavior of Sentiment Analysis by checking that the result will be negative and will show to the user.
@@ -89,6 +92,10 @@ def test_sentiment_negative_submit(page: Page):
     page.locator("button[data-testid='stBaseButton-secondary']").all()[0].click()
 
     page.wait_for_selector(".red", timeout=30000)
+
+    page.locator(".red").scroll_into_view_if_needed()
+
+    time.sleep(2)
     
 
 def test_sentiment_neutral_submit(page: Page):
@@ -108,6 +115,11 @@ def test_sentiment_neutral_submit(page: Page):
     page.locator("button[data-testid='stBaseButton-secondary']").all()[0].click()
 
     page.wait_for_selector(".gray", timeout=30000)
+
+    page.locator(".gray").scroll_into_view_if_needed()
+
+    time.sleep(2)
+
 
 
 def test_sentiment_next(page: Page):

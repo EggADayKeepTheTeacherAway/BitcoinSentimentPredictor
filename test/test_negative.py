@@ -1,5 +1,6 @@
-import os
 import pytest
+import requests
+import os
 import time
 from pathlib import Path
 from playwright.sync_api import Page, sync_playwright
@@ -21,65 +22,43 @@ def wait_page_loading(page: Page):
     print("Page loaded successfully")
 
 
-def test_whole_page(page: Page):
-    """
-    Test navigation by clicking through each navbar item and taking a screenshot.
-    """
-    Path("test/screenshots").mkdir(parents=True, exist_ok=True)
+BASE_URL = "http://127.0.0.1:6969"
+
+
+def test_sentiment_api_score_invalid_input():
+    """Test result of sentiment API response."""
+    response = requests.get(f"{BASE_URL}/sentiment")
+    assert response.status_code == 422
+  
+    response = requests.get(f"{BASE_URL}/sentiment", params={"text": ""})
+    assert response.status_code == 200
+    assert response.json()["result"] == "neutral"
+
+
+    response = requests.get(f"{BASE_URL}/sentiment", params={"text": "123456"})
+    assert response.status_code == 200
+    assert response.json()["result"] == "neutral"
+
+
+def test_api_sentiment_excute_button_show_error(page: Page):
     wait_page_loading(page)
 
     navbar_iframe = page.frame_locator("iframe[title='streamlit_navigation_bar.st_navbar']")
     navbar_items = navbar_iframe.locator("li a, a.nav-link").all()
+    navbar_items[3:][0].click()
 
-    print(f"Found {len(navbar_items)} navbar items")
-    for idx, item in enumerate(navbar_items):
-        text = item.inner_text()
-        print(f"Clicking navbar item {idx + 1}: {text}")
-        item.click()
-        
-        page.wait_for_selector("div[data-testid='stAppViewContainer']", timeout=30000)
-        page.wait_for_selector("iframe[title='streamlit_navigation_bar.st_navbar']", timeout=30000)
+    page.wait_for_selector(".stExpander", timeout=30000)
 
-        if text == "Bitcoin":
-            page.locator("button[data-testid='stBaseButton-secondary']").click()
+    page.locator(".stExpander").all()[-1].click()
 
+    page.locator("button[data-testid='stBaseButton-secondary']").all()[-1].click()
 
-        elif text == "Sentiment Analysis":
-            page.get_by_label("Put your comment here:").fill('I love Bitcoin')
+    page.wait_for_selector("div[data-testid='stAlertContentError']") # show error
 
-            page.locator("button[data-testid='stBaseButton-secondary']").all()[0].click()
-            
-            page.wait_for_selector(".green", timeout=30000)
+    page.locator("div[data-testid='stAlertContentError']").scroll_into_view_if_needed()
 
-            page.locator(".green").scroll_into_view_if_needed()
-
-        elif text == "API":
-            page.wait_for_selector(".stExpander", timeout=30000)
-
-            dropdowns = page.locator(".stExpander").all()
-
-            buttons = page.locator("button[data-testid='stBaseButton-secondary']").all()
-
-
-            for i in range(len(dropdowns)):
-                dropdowns[i].click()
-
-                if i == 2:
-                    page.get_by_label("How many reddit posts (optional - uses API default if empty):").fill("2")
-                
-                elif i == 3:
-                    page.get_by_label("Text to analyze:").fill("I love you")
-
-                buttons[i].click()
-                
-                page.wait_for_selector(".stJson", timeout=30000)
-
-                time.sleep(3)
-
-        time.sleep(5)
-
-        page.screenshot(path=f"test/screenshots/nav_to_{text.lower().replace(' ', '_')}.png")
-
+    time.sleep(2)
+  
 
 @pytest.fixture(scope="function")
 def page(request):
@@ -141,7 +120,7 @@ if IS_DIRECT_RUN:
         page = context.new_page()
         page.set_default_navigation_timeout(60000)
         page.set_default_timeout(30000)
-        test_whole_page(page)
+        test_api_excute_button(page)
         page.close()
         context.close()
         browser.close()

@@ -1,9 +1,6 @@
-import re
 import pytest
 import requests
-
 from datetime import datetime
-from playwright.sync_api import Page, expect
 
 BASE_URL = "http://127.0.0.1:6969"
 
@@ -127,6 +124,25 @@ def test_sentiment_api_score_item_format():
     for field in ["neg", "neu", "pos", "compound"]:
         assert field in data["score"]
         assert isinstance(data["score"][field], (int, float))
+
+
+def test_sentiment_api_score_accuracy():
+    """Test result of sentiment API response."""
+    response = requests.get(f"{BASE_URL}/sentiment", params={"text": "Bitcoin is going to the moon and I love it!"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["result"] == "positive"
+
+    response = requests.get(f"{BASE_URL}/sentiment", params={"text": "Bonato"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["result"] == "neutral"
+
+    response = requests.get(f"{BASE_URL}/sentiment", params={"text": "I will destroy bitcoin system."})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["result"] == "negative"
+    
 
 
 # /result

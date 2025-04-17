@@ -50,6 +50,7 @@ if "reddit_data" not in st.session_state:
 if "seen_posts" not in st.session_state:
     st.session_state.seen_posts = set()
 
+
 if "current_post" not in st.session_state and st.session_state.reddit_data:
     # not seen before and have texttttttttttttt
     available_posts = [post for post in st.session_state.reddit_data 
@@ -64,6 +65,9 @@ if "current_post" not in st.session_state and st.session_state.reddit_data:
 # enough with session let's do main thing here
 if "current_post" in st.session_state and st.session_state.current_post:
     st.html("<h1 class='hero-animation'>Sentiment Analysis</h1>")
+
+    st.info("Please click the button twice if it doesn't working.")
+
     st.header(st.session_state.current_post["title"])
     st.write(st.session_state.current_post["text"])
     
@@ -77,7 +81,7 @@ if "current_post" in st.session_state and st.session_state.current_post:
     
     with col2:
         next_post_button = st.button("Next Post")
-    
+
     if submit_button and comment:
         sentiment_result = analyze_sentiment(comment)
         
@@ -124,7 +128,6 @@ if "current_post" in st.session_state and st.session_state.current_post:
     if next_post_button:
         st.session_state.pop("current_post", None)
 
-        
 
 else:
     st.error("No Reddit posts with text content available.")
