@@ -120,7 +120,7 @@ if IS_DIRECT_RUN:
         page = context.new_page()
         page.set_default_navigation_timeout(60000)
         page.set_default_timeout(30000)
-        test_api_excute_button(page)
+        test_api_sentiment_excute_button_show_error(page)
         page.close()
         context.close()
         browser.close()
