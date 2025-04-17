@@ -11,3 +11,6 @@ fastapi
 dotenv
 pytest-playwright
 streamlit-community-navigation-bar
+tensorflow
+scikit-learn
+joblib
