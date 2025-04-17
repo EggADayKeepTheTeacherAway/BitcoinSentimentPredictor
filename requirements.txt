@@ -10,3 +10,4 @@ praw
 fastapi
 dotenv
 pytest-playwright
+streamlit-community-navigation-bar
