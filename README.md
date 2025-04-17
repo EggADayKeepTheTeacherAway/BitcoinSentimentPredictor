@@ -4,7 +4,7 @@
 The Bitcoin Sentiment Predictor aims to analyze sentiment from recently collected social media posts about Bitcoin and correlate it with historical bitcoin data to predict short-term price movements.
 
 ## Primary data source(s)
-Sentiment data from 1,000 social media posts mentioning Bitcoin. Sentiment will be labeled as positive, negative, or neutral.
+Sentiment data from 1,917 Reddit posts in /bitcoin. Sentiment will be labeled as positive, negative, or neutral.
 
 ## Secondary data source(s)
 Historical Bitcoin data CoinGecko API
