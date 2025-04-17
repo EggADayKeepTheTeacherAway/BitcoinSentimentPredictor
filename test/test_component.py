@@ -148,13 +148,21 @@ def test_api_excute_button(page: Page):
 
     buttons = page.locator("button[data-testid='stBaseButton-secondary']").all()
 
+
     for i in range(len(dropdowns)):
         dropdowns[i].click()
+
+        if i == 2:
+            page.get_by_label("How many reddit posts (optional - uses API default if empty):").fill("2")
+        
+        elif i == 3:
+            page.get_by_label("Text to analyze:").fill("I love you")
+
         buttons[i].click()
         
         page.wait_for_selector(".stJson", timeout=30000)
 
-        time.sleep(2)
+        time.sleep(3)
 
 
 

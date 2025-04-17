@@ -120,11 +120,13 @@ with api_container:
             Returns recent posts from the Bitcoin subreddit.
         </p>
         """)
+        limit_param = st.text_input("How many reddit posts (optional - uses API default if empty):", key="reddit_params")
         
         if st.button("Execute", key="execute_reddit"):
             with st.spinner("Fetching Reddit posts data..."):
                 try:
-                    response = requests.get(f"{BASE_URL}/reddit")
+                    params = {"limit": limit_param} if limit_param else {}
+                    response = requests.get(f"{BASE_URL}/reddit", params=params)
                     if response.status_code == 200:
                         data = response.json()
                         st.html("<h3>Response</h3>")
