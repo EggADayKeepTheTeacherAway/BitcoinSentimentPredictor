@@ -1,6 +1,20 @@
 import streamlit as st
 import pandas as pd
+import pathlib
 from streamlit_navigation_bar import st_navbar
+
+# Get current project directory
+project_dir = pathlib.Path.cwd()
+
+# Create .streamlit directory if it doesn't exist
+streamlit_dir = project_dir / ".streamlit"
+streamlit_dir.mkdir(exist_ok=True)
+
+# Create config.toml file with dark theme
+config_path = streamlit_dir / "config.toml"
+with open(config_path, "w") as f:
+    f.write("[theme]\nbase = \"dark\"\n")
+
 
 styles = {  
     "nav": {
