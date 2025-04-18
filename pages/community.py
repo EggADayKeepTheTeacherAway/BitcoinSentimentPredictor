@@ -66,7 +66,7 @@ if "current_post" not in st.session_state and st.session_state.reddit_data:
 if "current_post" in st.session_state and st.session_state.current_post:
     st.html("<h1 class='hero-animation'>Sentiment Analysis</h1>")
 
-    st.info("Please click the button twice if it doesn't working.")
+    st.info("Please click the button twice if it is't working.")
 
     st.header(st.session_state.current_post["title"])
     st.write(st.session_state.current_post["text"])
@@ -74,7 +74,7 @@ if "current_post" in st.session_state and st.session_state.current_post:
     st.divider()
     comment = st.text_input(label="Put your comment here:")
     
-    col1, col2 = st.columns([1, 20])
+    col1, col2 = st.columns([1, 12])
     
     with col1:
         submit_button = st.button("Submit")
