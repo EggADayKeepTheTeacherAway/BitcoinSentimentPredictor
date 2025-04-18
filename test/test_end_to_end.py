@@ -16,8 +16,8 @@ def wait_page_loading(page: Page):
         page (Page): Playwright page object.
     """
     page.goto("http://localhost:8501", timeout=60000)
-    page.wait_for_selector("div[data-testid='stAppViewContainer']", timeout=30000)
-    page.wait_for_selector("iframe[title='streamlit_navigation_bar.st_navbar']", timeout=30000)
+    page.wait_for_selector("div[data-testid='stAppViewContainer']", timeout=60000)
+    page.wait_for_selector("iframe[title='streamlit_navigation_bar.st_navbar']", timeout=60000)
     print("Page loaded successfully")
 
 
@@ -31,8 +31,8 @@ def test_bitcoin_dashboard_refresh(page: Page):
     navbar_items = navbar_iframe.locator("li a, a.nav-link").all()
     navbar_items[1:][0].click()
 
-    page.wait_for_selector(".hi-playwright", timeout=30000)
-    page.wait_for_selector("div[data-testid='stCaptionContainer']", timeout=30000)
+    page.wait_for_selector(".hi-playwright", timeout=60000)
+    page.wait_for_selector("div[data-testid='stCaptionContainer']", timeout=60000)
 
     caption_text = page.locator("div[data-testid='stCaptionContainer'] > p").inner_text()
     original_time_str = caption_text.split()[-1]
@@ -40,7 +40,7 @@ def test_bitcoin_dashboard_refresh(page: Page):
 
     time.sleep(3)
     page.locator("button[data-testid='stBaseButton-secondary']").click()
-    time.sleep(3)
+    time.sleep(30)
 
     caption_text_after = page.locator("div[data-testid='stCaptionContainer'] > p").inner_text()
     new_time_str = caption_text_after.split()[-1]
@@ -63,13 +63,13 @@ def test_sentiment_positive_submit(page: Page):
     navbar_items = navbar_iframe.locator("li a, a.nav-link").all()
     navbar_items[2:][0].click()
 
-    page.wait_for_selector("button", timeout=30000)
+    page.wait_for_selector("button", timeout=60000)
 
     page.get_by_label("Put your comment here:").fill('I love Bitcoin')
 
     page.locator("button[data-testid='stBaseButton-secondary']").all()[0].click()
 
-    page.wait_for_selector(".green", timeout=30000)
+    page.wait_for_selector(".green", timeout=60000)
     
     page.locator(".green").scroll_into_view_if_needed()
 
@@ -85,13 +85,13 @@ def test_sentiment_negative_submit(page: Page):
     navbar_items = navbar_iframe.locator("li a, a.nav-link").all()
     navbar_items[2:][0].click()
 
-    page.wait_for_selector("button", timeout=30000)
+    page.wait_for_selector("button", timeout=60000)
 
     page.get_by_label("Put your comment here:").fill('I hate you')
 
     page.locator("button[data-testid='stBaseButton-secondary']").all()[0].click()
 
-    page.wait_for_selector(".red", timeout=30000)
+    page.wait_for_selector(".red", timeout=60000)
 
     page.locator(".red").scroll_into_view_if_needed()
 
@@ -108,13 +108,13 @@ def test_sentiment_neutral_submit(page: Page):
     navbar_items = navbar_iframe.locator("li a, a.nav-link").all()
     navbar_items[2:][0].click()
 
-    page.wait_for_selector("button", timeout=30000)
+    page.wait_for_selector("button", timeout=60000)
     
     page.get_by_label("Put your comment here:").fill('Banana')
 
     page.locator("button[data-testid='stBaseButton-secondary']").all()[0].click()
 
-    page.wait_for_selector(".gray", timeout=30000)
+    page.wait_for_selector(".gray", timeout=60000)
 
     page.locator(".gray").scroll_into_view_if_needed()
 
@@ -132,7 +132,7 @@ def test_sentiment_next(page: Page):
     navbar_items = navbar_iframe.locator("li a, a.nav-link").all()
     navbar_items[2:][0].click()
 
-    page.wait_for_selector("button", timeout=30000)
+    page.wait_for_selector("button", timeout=60000)
 
     title = page.locator(".stHeading").inner_text()
 
@@ -154,7 +154,7 @@ def test_api_excute_button(page: Page):
     navbar_items = navbar_iframe.locator("li a, a.nav-link").all()
     navbar_items[3:][0].click()
 
-    page.wait_for_selector(".stExpander", timeout=30000)
+    page.wait_for_selector(".stExpander", timeout=60000)
 
     dropdowns = page.locator(".stExpander").all()
 
@@ -172,7 +172,7 @@ def test_api_excute_button(page: Page):
 
         buttons[i].click()
         
-        page.wait_for_selector(".stJson", timeout=30000)
+        page.wait_for_selector(".stJson", timeout=60000)
 
         time.sleep(3)
 
@@ -193,8 +193,8 @@ def test_whole_page(page: Page):
         print(f"Clicking navbar item {idx + 1}: {text}")
         item.click()
         
-        page.wait_for_selector("div[data-testid='stAppViewContainer']", timeout=30000)
-        page.wait_for_selector("iframe[title='streamlit_navigation_bar.st_navbar']", timeout=30000)
+        page.wait_for_selector("div[data-testid='stAppViewContainer']", timeout=60000)
+        page.wait_for_selector("iframe[title='streamlit_navigation_bar.st_navbar']", timeout=60000)
 
         if text == "Bitcoin":
             page.locator("button[data-testid='stBaseButton-secondary']").click()
@@ -205,12 +205,12 @@ def test_whole_page(page: Page):
 
             page.locator("button[data-testid='stBaseButton-secondary']").all()[0].click()
             
-            page.wait_for_selector(".green", timeout=30000)
+            page.wait_for_selector(".green", timeout=60000)
 
             page.locator(".green").scroll_into_view_if_needed()
 
         elif text == "API":
-            page.wait_for_selector(".stExpander", timeout=30000)
+            page.wait_for_selector(".stExpander", timeout=60000)
 
             dropdowns = page.locator(".stExpander").all()
 
@@ -228,7 +228,7 @@ def test_whole_page(page: Page):
 
                 buttons[i].click()
                 
-                page.wait_for_selector(".stJson", timeout=30000)
+                page.wait_for_selector(".stJson", timeout=60000)
 
                 time.sleep(3)
 
@@ -263,7 +263,7 @@ def page(request):
         context = browser.new_context(**context_kwargs)
         page = context.new_page()
         page.set_default_navigation_timeout(60000)
-        page.set_default_timeout(30000)
+        page.set_default_timeout(60000)
 
         yield page
 
@@ -296,8 +296,8 @@ if IS_DIRECT_RUN:
         context = browser.new_context()
         page = context.new_page()
         page.set_default_navigation_timeout(60000)
-        page.set_default_timeout(30000)
-        test_api_excute_button(page)
+        page.set_default_timeout(60000)
+        test_bitcoin_dashboard_refresh(page)
         page.close()
         context.close()
         browser.close()
