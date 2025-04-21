@@ -4,6 +4,7 @@ import pandas as pd
 import requests
 import plotly.graph_objects as go
 from datetime import datetime
+import io
 
 def load_css(file_path):
     with open(file_path) as f:
@@ -49,6 +50,12 @@ def get_prediction():
         return None
 
 dashboard_container = st.container()
+
+# Initialize session state for download data if it doesn't exist
+if 'preprocess_data_content' not in st.session_state:
+    st.session_state.preprocess_data_content = None
+if 'preprocess_data_filename' not in st.session_state:
+    st.session_state.preprocess_data_filename = None
 
 with dashboard_container:
     with st.spinner("Loading Bitcoin data..."):
@@ -105,8 +112,84 @@ with dashboard_container:
     st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     if st.button("Refresh Data"):
-        pass
+        # Clear download state on refresh
+        st.session_state.preprocess_data_content = None
+        st.session_state.preprocess_data_filename = None
+        st.rerun() # Rerun the script to refresh data
+
+    # --- Download Data Section ---
+    st.markdown("---") 
+    st.subheader("Download Data")
     
+    dl_col1, dl_col2 = st.columns(2)
+
+    with dl_col1:
+        # Button to trigger the data fetch
+        if st.button("Prepare Preprocessed Sentiment Data (CSV)"): # Changed button label
+            try:
+                with st.spinner("Fetching preprocessed data..."): # Add spinner
+                    download_response = requests.get(f"{BASE_URL}/download-preprocess-data")
+                    if download_response.status_code == 200:
+                        content_disposition = download_response.headers.get('content-disposition')
+                        filename = f"preprocessed_bitcoin_sentiment_{datetime.now().strftime('%Y%m%d')}.csv"
+                        if content_disposition:
+                            parts = content_disposition.split('filename=')
+                            if len(parts) > 1:
+                                filename = parts[1].strip('"')
+                        
+                        # Store data in session state
+                        st.session_state.preprocess_data_content = download_response.content
+                        st.session_state.preprocess_data_filename = filename
+                        st.success("Preprocessed data is ready for download below.") # Indicate readiness
+                    else:
+                        # Clear state on error
+                        st.session_state.preprocess_data_content = None
+                        st.session_state.preprocess_data_filename = None
+                        st.error(f"Error fetching data for download: {download_response.status_code} - {download_response.text}")
+            except Exception as e:
+                 # Clear state on error
+                st.session_state.preprocess_data_content = None
+                st.session_state.preprocess_data_filename = None
+                st.error(f"Error during preprocessed data download request: {str(e)}")
+
+        # Conditionally display the download button if data is ready
+        if st.session_state.preprocess_data_content is not None:
+            st.download_button(
+                label="Click here to download Preprocessed Data CSV",
+                data=st.session_state.preprocess_data_content,
+                file_name=st.session_state.preprocess_data_filename,
+                mime='text/csv',
+                key='download-preprocess-final' # Use a different key if needed
+                # Optionally add on_click to clear state after download starts
+                # on_click=lambda: setattr(st.session_state, 'preprocess_data_content', None) 
+            )
+
+    with dl_col2:
+        # Bitcoin Price download logic remains the same as it uses data already in memory (bitcoin_df)
+        if st.button("Download Bitcoin Price Data (CSV)"):
+            if bitcoin_df is not None and not bitcoin_df.empty:
+                try:
+                    csv_buffer = io.StringIO()
+                    bitcoin_df.to_csv(csv_buffer, index=False, encoding='utf-8')
+                    csv_data = csv_buffer.getvalue()
+                    
+                    filename = f"bitcoin_price_last_30_days_{datetime.now().strftime('%Y%m%d')}.csv"
+                    
+                    st.download_button(
+                        label="Click here to download Bitcoin Price CSV",
+                        data=csv_data,
+                        file_name=filename,
+                        mime='text/csv',
+                        key='download-price'
+                    )
+                except Exception as e:
+                    st.error(f"Error generating Bitcoin price CSV: {str(e)}")
+            else:
+                st.warning("Bitcoin price data is not available to download.")
+    
+    # Separator before the prediction column
+    st.markdown("---") 
+
     with col2:
         st.subheader("Price Prediction")
         
@@ -127,7 +210,7 @@ with dashboard_container:
             </div>
             """
             st.html(prediction_card)
-            
+
             st.html("<h3>Market Statistics</h3>")
             
             if bitcoin_df is not None and not bitcoin_df.empty:
@@ -147,5 +230,4 @@ with dashboard_container:
                     st.metric("Volatility", f"${volatility:,.2f}")
         else:
             st.error("Unable to load prediction data")
-    
-    
+

@@ -2,6 +2,7 @@ import sys
 import os
 import datetime
 import requests
+import tempfile
 
 # Add the parent directory to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -11,10 +12,11 @@ import praw
 import nltk
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, HTTPException
+from fastapi.responses import FileResponse
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-from prototype_data.predict import preprocess_reddit_data, predict_next_day
+from prototype_data.predict import preprocess_reddit_data, predict_next_day, export_preprocessed_data
 from tensorflow.keras.models import load_model
 import pandas as pd
 import joblib
@@ -30,12 +32,14 @@ sys.path.append(prototype_directory)
 
 model_path = os.path.join(prototype_directory, 'btc_gru_model.h5')
 scaler_path = os.path.join(prototype_directory, 'feature_scaler.pkl')
-# market_data_path = os.path.join(prototype_directory, 'left_reddit_data.csv')
-# bitcoin_data_path = os.path.join(prototype_directory, 'bitcoin_prices.csv')
 
 # Load the model and scaler
 loaded_model = load_model(model_path)
 loaded_scaler = joblib.load(scaler_path)
+
+# Define a directory for exports if needed, or use tempfile
+EXPORT_DIR = os.path.join(os.path.dirname(__file__), "exports")
+os.makedirs(EXPORT_DIR, exist_ok=True)
 
 @app.get("/result")
 async def get_predict_result():
@@ -44,7 +48,7 @@ async def get_predict_result():
     """
     print("Starting prediction process with dynamic data...")
     
-    reddit_data = await get_reddit_post(limit=985)
+    reddit_data = await get_reddit_post(limit=200)
     bitcoin_data = await get_bitcoin_price()
     
     new_market_data = preprocess_reddit_data(reddit_data, bitcoin_data)
@@ -64,6 +68,82 @@ async def get_predict_result():
         "confident": round(confidence * 100, 2),
     }
       
+@app.get("/download-preprocess-data")
+async def download_preprocessed_data_endpoint():
+    """
+    Preprocesses the latest Reddit and Bitcoin data and returns it as a downloadable CSV file.
+    """
+    print("Starting data preprocessing for download...")
+    try:
+        # Reduce the limit significantly to speed up the process
+        reddit_data = await get_reddit_post(limit=985)  # Reduced limit from 985
+        bitcoin_data = await get_bitcoin_price()
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".csv", dir=EXPORT_DIR, mode='w') as temp_file:
+            output_filepath = temp_file.name
+
+        print(f"Exporting preprocessed data to temporary file: {output_filepath}")
+
+        export_preprocessed_data(reddit_data, bitcoin_data, output_filepath)
+
+        if not os.path.exists(output_filepath) or os.path.getsize(output_filepath) == 0:
+             print(f"Export failed or file is empty: {output_filepath}")
+             raise HTTPException(status_code=500, detail="Failed to generate preprocessed data file.")
+
+        return FileResponse(
+            path=output_filepath,
+            filename=f"preprocessed_bitcoin_sentiment_{datetime.date.today()}.csv",
+            media_type='text/csv',
+        )
+
+    except ValueError as ve:
+        print(f"Preprocessing error: {ve}")
+        raise HTTPException(status_code=400, detail=f"Data preprocessing error: {ve}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        if 'output_filepath' in locals() and os.path.exists(output_filepath):
+             os.remove(output_filepath)
+        raise HTTPException(status_code=500, detail=f"An internal server error occurred: {e}")
+
+@app.get("/download-bitcoin-price")
+async def download_bitcoin_price_endpoint():
+    """
+    Fetches the latest Bitcoin price data and returns it as a downloadable CSV file.
+    """
+    print("Starting Bitcoin price data fetch for download...")
+    try:
+        bitcoin_data_list = await get_bitcoin_price()
+
+        if not bitcoin_data_list:
+            raise HTTPException(status_code=404, detail="No Bitcoin price data found.")
+        
+        bitcoin_df = pd.DataFrame(bitcoin_data_list)
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".csv", dir=EXPORT_DIR, mode='w', encoding='utf-8') as temp_file:
+            output_filepath = temp_file.name
+            bitcoin_df.to_csv(output_filepath, index=False, encoding='utf-8')
+
+        print(f"Bitcoin price data exported to temporary file: {output_filepath}")
+
+        if not os.path.exists(output_filepath) or os.path.getsize(output_filepath) == 0:
+             print(f"Export failed or file is empty: {output_filepath}")
+             if os.path.exists(output_filepath):
+                 os.remove(output_filepath)
+             raise HTTPException(status_code=500, detail="Failed to generate Bitcoin price data file.")
+        return FileResponse(
+            path=output_filepath,
+            filename=f"bitcoin_price_last_30_days_{datetime.date.today()}.csv",
+            media_type='text/csv',
+        )
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"An unexpected error occurred during Bitcoin price download: {e}")
+        if 'output_filepath' in locals() and os.path.exists(output_filepath):
+             os.remove(output_filepath)
+        raise HTTPException(status_code=500, detail=f"An internal server error occurred: {e}")
+
 @app.get("/bitcoin")
 async def get_bitcoin_price():
     """
