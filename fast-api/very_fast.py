@@ -16,7 +16,7 @@ from fastapi import FastAPI, Query, HTTPException
 from fastapi.responses import FileResponse
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-from prototype_data.predict import preprocess_reddit_data, predict_next_day, export_preprocessed_data
+from prototype_data.predict import preprocess_reddit_data, predict_next_day, export_preprocessed_data, export_reddit_data, export_bitcoin_data
 from tensorflow.keras.models import load_model
 import pandas as pd
 import joblib
@@ -104,6 +104,49 @@ async def download_preprocessed_data_endpoint():
         if 'output_filepath' in locals() and os.path.exists(output_filepath):
              os.remove(output_filepath)
         raise HTTPException(status_code=500, detail=f"An internal server error occurred: {e}")
+
+# --- New Download Endpoints ---
+
+@app.get("/download-reddit-data")
+async def download_reddit_data_endpoint():
+    """
+    Preprocesses the latest Reddit data (sentiment, aggregation) and returns it as a downloadable CSV file.
+    """
+    print("Starting Reddit data preprocessing for download...")
+    try:
+        # Fetch raw Reddit data (adjust limit as needed for performance)
+        reddit_data = await get_reddit_post(limit=200) 
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".csv", dir=EXPORT_DIR, mode='w') as temp_file:
+            output_filepath = temp_file.name
+
+        print(f"Exporting aggregated Reddit data to temporary file: {output_filepath}")
+
+        # Call the specific export function for Reddit data
+        recent_dates = export_reddit_data(reddit_data, output_filepath)
+
+        if recent_dates is None or not os.path.exists(output_filepath) or os.path.getsize(output_filepath) == 0:
+             print(f"Reddit data export failed or file is empty: {output_filepath}")
+             # Clean up if file exists but is empty/invalid
+             if os.path.exists(output_filepath): os.remove(output_filepath)
+             raise HTTPException(status_code=500, detail="Failed to generate aggregated Reddit data file.")
+
+        return FileResponse(
+            path=output_filepath,
+            filename=f"aggregated_reddit_sentiment_{datetime.date.today()}.csv",
+            media_type='text/csv',
+        )
+
+    except ValueError as ve:
+        print(f"Reddit preprocessing error: {ve}")
+        # Clean up temp file on error
+        if 'output_filepath' in locals() and os.path.exists(output_filepath): os.remove(output_filepath)
+        raise HTTPException(status_code=400, detail=f"Data preprocessing error: {ve}")
+    except Exception as e:
+        print(f"An unexpected error occurred during Reddit data download: {e}")
+        if 'output_filepath' in locals() and os.path.exists(output_filepath): os.remove(output_filepath)
+        raise HTTPException(status_code=500, detail=f"An internal server error occurred: {e}")
+
 
 @app.get("/download-bitcoin-price")
 async def download_bitcoin_price_endpoint():
