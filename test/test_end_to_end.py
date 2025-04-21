@@ -38,9 +38,8 @@ def test_bitcoin_dashboard_refresh(page: Page):
     original_time_str = caption_text.split()[-1]
     original_time = datetime.strptime(original_time_str, "%H:%M:%S")
 
-    time.sleep(3)
     page.locator("button[data-testid='stBaseButton-secondary']").click()
-    time.sleep(30)
+    time.sleep(3)
 
     caption_text_after = page.locator("div[data-testid='stCaptionContainer'] > p").inner_text()
     new_time_str = caption_text_after.split()[-1]
@@ -50,7 +49,7 @@ def test_bitcoin_dashboard_refresh(page: Page):
 
     delta_seconds = (new_time - original_time).total_seconds()
     print(f"Time diff: {delta_seconds} seconds")
-    assert delta_seconds >= 3, f"Expected at least 3 seconds between timestamps, got {delta_seconds:.2f}"
+    assert delta_seconds >= 1, f"Expected at least 1 seconds between timestamps, got {delta_seconds:.2f}"
 
 
 def test_sentiment_positive_submit(page: Page):

@@ -102,7 +102,11 @@ with dashboard_container:
         else:
             st.error("Unable to load Bitcoin price data")
     
-
+    st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    
+    if st.button("Refresh Data"):
+        pass
+    
     with col2:
         st.subheader("Price Prediction")
         
@@ -144,7 +148,4 @@ with dashboard_container:
         else:
             st.error("Unable to load prediction data")
     
-    st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
-    if st.button("Refresh Data"):
-        pass
