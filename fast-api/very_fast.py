@@ -19,8 +19,6 @@ from tensorflow.keras.models import load_model
 import pandas as pd
 import joblib
 
-nltk.download('vader_lexicon')
-
 load_dotenv()
 
 app = FastAPI()

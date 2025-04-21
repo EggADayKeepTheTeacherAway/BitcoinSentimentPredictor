@@ -2,6 +2,14 @@ import streamlit as st
 import pandas as pd
 import pathlib
 from streamlit_navigation_bar import st_navbar
+import nltk
+
+
+try:
+    nltk.data.find('sentiment/vader_lexicon.zip')
+except LookupError:
+    nltk.download('vader_lexicon')
+
 
 # Get current project directory
 project_dir = pathlib.Path.cwd()

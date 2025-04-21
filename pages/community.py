@@ -70,6 +70,8 @@ if "current_post" in st.session_state and st.session_state.current_post:
 
     st.header(st.session_state.current_post["title"])
     st.write(st.session_state.current_post["text"])
+
+    st.write(f"Reddit Post URL: {st.session_state.current_post["url"]}")
     
     st.divider()
     comment = st.text_input(label="Put your comment here:")
