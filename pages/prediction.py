@@ -56,6 +56,10 @@ if 'preprocess_data_content' not in st.session_state:
     st.session_state.preprocess_data_content = None
 if 'preprocess_data_filename' not in st.session_state:
     st.session_state.preprocess_data_filename = None
+if 'price_data_content' not in st.session_state:
+    st.session_state.price_data_content = None
+if 'price_data_filename' not in st.session_state:
+    st.session_state.price_data_filename = None
 
 with dashboard_container:
     with st.spinner("Loading Bitcoin data..."):
@@ -115,6 +119,8 @@ with dashboard_container:
         # Clear download state on refresh
         st.session_state.preprocess_data_content = None
         st.session_state.preprocess_data_filename = None
+        st.session_state.price_data_content = None
+        st.session_state.price_data_filename = None
         st.rerun() # Rerun the script to refresh data
 
     # --- Download Data Section ---
@@ -165,27 +171,43 @@ with dashboard_container:
             )
 
     with dl_col2:
-        # Bitcoin Price download logic remains the same as it uses data already in memory (bitcoin_df)
-        if st.button("Download Bitcoin Price Data (CSV)"):
+        # Button to trigger Bitcoin price data preparation
+        if st.button("Prepare Bitcoin Price Data (CSV)"):
             if bitcoin_df is not None and not bitcoin_df.empty:
                 try:
-                    csv_buffer = io.StringIO()
-                    bitcoin_df.to_csv(csv_buffer, index=False, encoding='utf-8')
-                    csv_data = csv_buffer.getvalue()
-                    
-                    filename = f"bitcoin_price_last_30_days_{datetime.now().strftime('%Y%m%d')}.csv"
-                    
-                    st.download_button(
-                        label="Click here to download Bitcoin Price CSV",
-                        data=csv_data,
-                        file_name=filename,
-                        mime='text/csv',
-                        key='download-price'
-                    )
+                    with st.spinner("Preparing price data..."): # Add spinner
+                        csv_buffer = io.StringIO()
+                        bitcoin_df.to_csv(csv_buffer, index=False, encoding='utf-8')
+                        csv_data = csv_buffer.getvalue()
+                        
+                        filename = f"bitcoin_price_last_30_days_{datetime.now().strftime('%Y%m%d')}.csv"
+                        
+                        # Store data in session state
+                        st.session_state.price_data_content = csv_data
+                        st.session_state.price_data_filename = filename
+                        st.success("Bitcoin price data is ready for download below.") # Indicate readiness
                 except Exception as e:
+                    # Clear state on error
+                    st.session_state.price_data_content = None
+                    st.session_state.price_data_filename = None
                     st.error(f"Error generating Bitcoin price CSV: {str(e)}")
             else:
-                st.warning("Bitcoin price data is not available to download.")
+                # Clear state if data not available
+                st.session_state.price_data_content = None
+                st.session_state.price_data_filename = None
+                st.warning("Bitcoin price data is not available to prepare.")
+
+        # Conditionally display the download button if price data is ready
+        if st.session_state.price_data_content is not None:
+            st.download_button(
+                label="Click here to download Bitcoin Price CSV",
+                data=st.session_state.price_data_content,
+                file_name=st.session_state.price_data_filename,
+                mime='text/csv',
+                key='download-price-final' # Use a different key if needed
+                # Optionally add on_click to clear state after download starts
+                # on_click=lambda: setattr(st.session_state, 'price_data_content', None)
+            )
     
     # Separator before the prediction column
     st.markdown("---") 
