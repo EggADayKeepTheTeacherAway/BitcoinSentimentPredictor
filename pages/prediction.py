@@ -54,9 +54,6 @@ with dashboard_container:
     with st.spinner("Loading Bitcoin data..."):
         bitcoin_df = get_bitcoin_data()
     
-    with st.spinner("Loading prediction..."):
-        prediction = get_prediction()
-    
     with col1:
         st.subheader("Bitcoin Price (Last 30 Days)")
         
@@ -109,6 +106,9 @@ with dashboard_container:
     with col2:
         st.subheader("Price Prediction")
         
+        with st.spinner("Loading bitcoin price prediction..."):
+            prediction = get_prediction()
+
         if prediction:
             direction = prediction.get('direction', 'unknown')
             confidence = prediction.get('confident', '0%')
