@@ -93,3 +93,6 @@ copy sample.env .env
 ## Member
 1. Kasidet Uthaiwiwatkul
 2. Panida Rumriankit
+
+![egg](https://github.com/EggADayKeepTheTeacherAway/BitcoinSentimentPredictor/blob/dcead5fda27f86724a09c58ba9a69fcad366fd4a/public/egg_bitcoin.png)
+
