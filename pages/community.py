@@ -238,7 +238,7 @@ if "current_post" in st.session_state and st.session_state.current_post:
                 ax3_twin.tick_params(axis='y', labelcolor='b')
 
                 # Updated Title
-                ax3.set_title('Sentiment Metrics for Last Up To 20 Available Days') 
+                ax3.set_title('Sentiment Metrics for Last Up To 10 Available Days') 
                 
                 # Combine legends
                 lines3, labels3 = ax3.get_legend_handles_labels()
