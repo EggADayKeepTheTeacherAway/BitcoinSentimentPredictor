@@ -53,11 +53,20 @@ def preprocess_bitcoin_data(bitcoin_data, recent_dates=None):
     
     return bitcoin_agg[['Date', 'Range', 'Open', 'Close']]
 
-def preprocess_reddit_only(reddit_data):
+def preprocess_reddit_only(reddit_data, num_recent_dates=2):
     """
     Preprocesses only the Reddit data.
-    - Calculates sentiment and aggregates metrics for the 2 most recent dates.
-    - Returns aggregated data and the list of recent dates.
+    - Calculates sentiment and aggregates metrics for the specified number of recent dates.
+    - Returns aggregated data and the list of recent dates used.
+
+    Args:
+        reddit_data (list or pd.DataFrame): Raw Reddit data.
+        num_recent_dates (int): The number of most recent dates to process. Defaults to 2.
+
+    Returns:
+        tuple: (pd.DataFrame containing aggregated data, list of recent dates used)
+               Returns (None, None) if processing fails due to insufficient data.
+               Raises ValueError for other processing errors.
     """
     if isinstance(reddit_data, list):
         reddit_df = pd.DataFrame(reddit_data)
@@ -84,9 +93,11 @@ def preprocess_reddit_only(reddit_data):
     except Exception as e:
         raise ValueError(f"Error converting Reddit 'Timestamp' column to datetime: {e}")
 
-    if reddit_df['Date'].nunique() < 2:
-         raise ValueError("Insufficient Reddit data - need posts from at least 2 different dates.")
-    recent_dates = sorted(reddit_df['Date'].unique(), reverse=True)[:2]
+    if reddit_df['Date'].nunique() < num_recent_dates:
+         print(f"Warning: Insufficient Reddit data - need posts from at least {num_recent_dates} different dates. Found {reddit_df['Date'].nunique()}.")
+         return None, None
+
+    recent_dates = sorted(reddit_df['Date'].unique(), reverse=True)[:num_recent_dates]
 
     recent_data = reddit_df[reddit_df['Date'].isin(recent_dates)].copy()
 
@@ -125,9 +136,12 @@ def preprocess_reddit_data(reddit_data, bitcoin_data):
     """
     Preprocess Reddit and Bitcoin data by calling helper functions and merging.
     - Accepts lists of dictionaries (not file paths)
+    - Specifically requests 2 days of Reddit data for prediction compatibility.
     """
     try:
-        agg_data, recent_dates = preprocess_reddit_only(reddit_data)
+        agg_data, recent_dates = preprocess_reddit_only(reddit_data, num_recent_dates=2)
+        if agg_data is None or recent_dates is None:
+             raise ValueError("Insufficient Reddit data - need posts from at least 2 different dates.")
     except ValueError as e:
         raise ValueError(f"Error processing Reddit data: {e}")
 
@@ -137,15 +151,13 @@ def preprocess_reddit_data(reddit_data, bitcoin_data):
          raise ValueError(f"Error processing Bitcoin data: {e}")
     
     merged_data = pd.merge(agg_data, bitcoin_agg[['Date', 'Range']], on='Date', how='inner')
-    merged_data = merged_data.sort_values('Date', ascending=False).head(2)
+    
+    merged_data = merged_data.sort_values('Date', ascending=True)
 
     if len(merged_data) < 2:
-        if len(agg_data) < 2 or len(bitcoin_agg) < 2:
-             raise ValueError("Insufficient daily data - need at least 2 days of complete Reddit and Bitcoin data.")
-        else:
-             raise ValueError("Merge failed or insufficient overlapping data - need at least 2 days of complete data for both sources.")
-    
-    print("Preprocessed Merged Data:")
+        raise ValueError("Merge failed or insufficient overlapping data - need at least 2 days of complete data for both sources after merging.")
+
+    print("Preprocessed Merged Data (last 2 days):")
     print(merged_data)
     return merged_data
 
@@ -193,27 +205,32 @@ def export_preprocessed_data(reddit_data, bitcoin_data, output_filepath):
         print(f"An error occurred during export: {e}")
 
 
-def export_reddit_data(reddit_data, output_filepath):
+def export_reddit_data(reddit_data, output_filepath, num_recent_dates=2):
     """
-    Preprocesses only the Reddit data and exports the aggregated result to a CSV file.
-    Also returns the recent_dates used for potential use in bitcoin export.
+    Preprocesses only the Reddit data for a specified number of recent dates
+    and exports the aggregated result to a CSV file.
 
     Args:
         reddit_data (list or pd.DataFrame): Raw Reddit data.
         output_filepath (str): The path where the CSV file will be saved.
+        num_recent_dates (int): The number of most recent dates to process. Defaults to 2.
 
     Returns:
-        list: The two most recent dates used for aggregation, or None if export fails.
+        list: The recent dates used for aggregation, or None if export fails.
     """
     try:
-        agg_data, recent_dates = preprocess_reddit_only(reddit_data)
+        agg_data, recent_dates = preprocess_reddit_only(reddit_data, num_recent_dates=num_recent_dates)
         
+        if agg_data is None or recent_dates is None:
+            print(f"Skipping export: Insufficient Reddit data for {num_recent_dates} dates.")
+            return None
+
         output_dir = os.path.dirname(output_filepath)
         if output_dir and not os.path.exists(output_dir):
             os.makedirs(output_dir)
             
         agg_data.to_csv(output_filepath, index=False)
-        print(f"Aggregated Reddit data successfully exported to {output_filepath}")
+        print(f"Aggregated Reddit data ({len(recent_dates)} days) successfully exported to {output_filepath}")
         return recent_dates
     except ValueError as ve:
         print(f"Error during Reddit data preprocessing/export: {ve}")

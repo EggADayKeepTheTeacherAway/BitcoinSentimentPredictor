@@ -202,7 +202,14 @@ if "current_post" in st.session_state and st.session_state.current_post:
             if not all(col in agg_reddit_df_chart.columns for col in required_cols):
                 st.warning("Aggregated Reddit data is missing required columns for the chart.")
             else:
+                agg_reddit_df_chart['Date'] = pd.to_datetime(agg_reddit_df_chart['Date']).dt.date # Ensure only date part is used for uniqueness check
                 agg_reddit_df_chart = agg_reddit_df_chart.sort_values('Date')
+
+                # --- Add check for number of unique dates ---
+                unique_dates = agg_reddit_df_chart['Date'].nunique()
+                if unique_dates < 3: # Example threshold, adjust as needed
+                    st.warning(f"Warning: The chart data only includes {unique_dates} unique date(s). This might be due to limited data availability from the source.")
+                # --- End check ---
 
                 # --- Debug: Show the DataFrame ---
                 st.caption("Data being plotted:")

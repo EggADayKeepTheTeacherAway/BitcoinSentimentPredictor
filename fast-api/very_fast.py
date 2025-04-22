@@ -91,7 +91,7 @@ async def download_preprocessed_data_endpoint():
 @app.get("/download-reddit-data")
 async def download_reddit_data_endpoint():
     try:
-        reddit_data_list = await get_reddit_post(limit=200)
+        reddit_data_list = await get_reddit_post(limit=985) 
         if not reddit_data_list:
              raise HTTPException(status_code=404, detail="No Reddit posts found.")
         reddit_df = pd.DataFrame(reddit_data_list)
@@ -143,14 +143,17 @@ async def download_bitcoin_price_endpoint():
 async def get_aggregated_reddit_data():
     try:
         reddit_data = await get_reddit_post(limit=985)
-        agg_data, recent_dates = preprocess_reddit_only(reddit_data)
-        if agg_data is None:
+        result_data, _ = preprocess_reddit_only(reddit_data, 10)
+
+        if isinstance(result_data, pd.DataFrame):
+            return result_data.to_dict(orient='records')
+        else:
             return []
-        return agg_data.to_dict(orient='records')
+
     except ValueError as ve:
-        raise HTTPException(status_code=400, detail=f"Data aggregation error: {ve}")
+        return []
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An internal server error occurred: {e}")
+        raise HTTPException(status_code=500, detail=f"An internal server error occurred processing aggregated data: {e}")
 
 @app.get("/bitcoin")
 async def get_bitcoin_price():
