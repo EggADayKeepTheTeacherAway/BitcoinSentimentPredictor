@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-import os # Added import
+import os
 
 sid = SentimentIntensityAnalyzer()
 
@@ -11,7 +11,7 @@ def get_sentiment_local(text):
     compound = scores['compound']
     return 'positive' if compound > 0.05 else 'negative' if compound < -0.05 else 'neutral'
 
-def preprocess_bitcoin_data(bitcoin_data, recent_dates=None): # Made recent_dates optional
+def preprocess_bitcoin_data(bitcoin_data, recent_dates=None):
     """
     Preprocesses Bitcoin price data.
     - If recent_dates is provided, filters for those dates.
@@ -22,8 +22,6 @@ def preprocess_bitcoin_data(bitcoin_data, recent_dates=None): # Made recent_date
     else:
         bitcoin_df = bitcoin_data.copy()
 
-    # Convert bitcoin_data timestamp to date and prepare
-    # Ensure 'date' column exists
     if 'date' not in bitcoin_df.columns:
         raise ValueError("Bitcoin data must contain a 'date' column.")
         
@@ -32,16 +30,13 @@ def preprocess_bitcoin_data(bitcoin_data, recent_dates=None): # Made recent_date
     except Exception as e:
         raise ValueError(f"Error converting bitcoin 'date' column to datetime: {e}")
 
-    # Filter only if recent_dates are provided
     if recent_dates:
         bitcoin_df = bitcoin_df[bitcoin_df['Date'].isin(recent_dates)]
         if bitcoin_df.empty:
             raise ValueError("No Bitcoin data found for the required recent dates.")
     elif bitcoin_df.empty:
-         # If no filtering and df is empty
          raise ValueError("No Bitcoin data found.")
 
-    # Ensure 'price' column exists
     if 'price' not in bitcoin_df.columns:
         raise ValueError("Bitcoin data must contain a 'price' column.")
 
@@ -50,9 +45,7 @@ def preprocess_bitcoin_data(bitcoin_data, recent_dates=None): # Made recent_date
         Close=('price', 'last')
     ).reset_index()
     
-    # Check if Open or Close resulted in NaN (might happen if only one entry per day)
     if bitcoin_agg['Open'].isnull().any() or bitcoin_agg['Close'].isnull().any():
-        # Handle NaN - e.g., fill with the available value or raise error
         print("Warning: NaN found in Open/Close aggregation. Ensure sufficient price data per day.")
         bitcoin_agg['Close'] = bitcoin_agg['Close'].fillna(bitcoin_agg['Open'])
 
@@ -71,7 +64,6 @@ def preprocess_reddit_only(reddit_data):
     else:
         reddit_df = reddit_data.copy()
 
-    # Standardize column names
     reddit_df.rename(columns={
         'time': 'Timestamp',
         'title': 'Title',
@@ -82,46 +74,37 @@ def preprocess_reddit_only(reddit_data):
         'id': 'ID'
     }, inplace=True)
 
-    # Ensure 'Timestamp' column exists and convert to datetime
     if 'Timestamp' not in reddit_df.columns:
         raise ValueError("Reddit data must contain a 'Timestamp' or 'time' column.")
     try:
-        # Use errors='coerce' to handle potential parsing issues gracefully
         reddit_df['Date'] = pd.to_datetime(reddit_df['Timestamp'], errors='coerce').dt.date
-        # Drop rows where date conversion failed
         reddit_df.dropna(subset=['Date'], inplace=True)
         if reddit_df.empty:
              raise ValueError("No valid dates found in Reddit data after conversion.")
     except Exception as e:
         raise ValueError(f"Error converting Reddit 'Timestamp' column to datetime: {e}")
 
-    # Determine the two most recent dates with data
     if reddit_df['Date'].nunique() < 2:
          raise ValueError("Insufficient Reddit data - need posts from at least 2 different dates.")
     recent_dates = sorted(reddit_df['Date'].unique(), reverse=True)[:2]
 
     recent_data = reddit_df[reddit_df['Date'].isin(recent_dates)].copy()
 
-    # Fill NaN in text/title for sentiment analysis
     recent_data['Title'] = recent_data['Title'].fillna('')
     recent_data['Text'] = recent_data['Text'].fillna('')
     
-    # Calculate Sentiment
     recent_data['Sentiment'] = recent_data.apply(
         lambda row: get_sentiment_local(f"{row['Title']} {row['Text']}"),
         axis=1
     )
 
-    # Aggregate Reddit data
-    # Ensure necessary columns exist before aggregation
     required_cols = ['Score', 'Comments', 'Upvote Ratio', 'ID', 'Sentiment']
     for col in required_cols:
         if col not in recent_data.columns:
-            # Handle missing columns, e.g., fill with default or raise error
             if col == 'Upvote Ratio':
-                 recent_data[col] = recent_data[col].fillna(0.0) # Example: fill NaN ratio with 0
+                 recent_data[col] = recent_data[col].fillna(0.0)
             elif col in ['Score', 'Comments']:
-                 recent_data[col] = recent_data[col].fillna(0) # Example: fill NaN counts with 0
+                 recent_data[col] = recent_data[col].fillna(0)
             else:
                  raise ValueError(f"Missing required column for aggregation: {col}")
 
@@ -143,21 +126,16 @@ def preprocess_reddit_data(reddit_data, bitcoin_data):
     Preprocess Reddit and Bitcoin data by calling helper functions and merging.
     - Accepts lists of dictionaries (not file paths)
     """
-    # --- Process Reddit Data ---
     try:
         agg_data, recent_dates = preprocess_reddit_only(reddit_data)
     except ValueError as e:
         raise ValueError(f"Error processing Reddit data: {e}")
-    # --- End Reddit Data Processing ---
 
-    # --- Process Bitcoin Data ---
     try:
         bitcoin_agg = preprocess_bitcoin_data(bitcoin_data, recent_dates)
     except ValueError as e:
          raise ValueError(f"Error processing Bitcoin data: {e}")
-    # --- End Bitcoin Data Processing ---
-
-    # --- Merge the results ---
+    
     merged_data = pd.merge(agg_data, bitcoin_agg[['Date', 'Range']], on='Date', how='inner')
     merged_data = merged_data.sort_values('Date', ascending=False).head(2)
 
@@ -173,7 +151,6 @@ def preprocess_reddit_data(reddit_data, bitcoin_data):
 
 def predict_next_day(new_data, model, scaler, time_steps=2, features=None):
     """Optimized prediction function"""
-    # Drop 'Date' column here if it exists, as it's not needed for prediction
     if 'Date' in new_data.columns:
         new_data_for_prediction = new_data.drop(columns=['Date'])
     else:
@@ -204,7 +181,6 @@ def export_preprocessed_data(reddit_data, bitcoin_data, output_filepath):
     try:
         processed_data = preprocess_reddit_data(reddit_data, bitcoin_data)
         
-        # Ensure the output directory exists
         output_dir = os.path.dirname(output_filepath)
         if output_dir and not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -216,7 +192,6 @@ def export_preprocessed_data(reddit_data, bitcoin_data, output_filepath):
     except Exception as e:
         print(f"An error occurred during export: {e}")
 
-# --- New Export Functions ---
 
 def export_reddit_data(reddit_data, output_filepath):
     """
@@ -233,7 +208,6 @@ def export_reddit_data(reddit_data, output_filepath):
     try:
         agg_data, recent_dates = preprocess_reddit_only(reddit_data)
         
-        # Ensure the output directory exists
         output_dir = os.path.dirname(output_filepath)
         if output_dir and not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -249,7 +223,7 @@ def export_reddit_data(reddit_data, output_filepath):
         return None
 
 
-def export_bitcoin_data(bitcoin_data, output_filepath, recent_dates=None): # Made recent_dates optional, moved output_filepath
+def export_bitcoin_data(bitcoin_data, output_filepath, recent_dates=None):
     """
     Preprocesses Bitcoin data (optionally filtered by recent_dates) and exports the result.
 
@@ -258,13 +232,9 @@ def export_bitcoin_data(bitcoin_data, output_filepath, recent_dates=None): # Mad
         output_filepath (str): The path where the CSV file will be saved.
         recent_dates (list, optional): List of the 2 recent dates (datetime.date objects) to filter by. Defaults to None (process all data).
     """
-    # Removed check for recent_dates length here, handled by preprocess_bitcoin_data if provided
-
     try:
-        # Pass recent_dates (which might be None) to the preprocessing function
         bitcoin_agg = preprocess_bitcoin_data(bitcoin_data, recent_dates=recent_dates) 
         
-        # Ensure the output directory exists
         output_dir = os.path.dirname(output_filepath)
         if output_dir and not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -275,6 +245,4 @@ def export_bitcoin_data(bitcoin_data, output_filepath, recent_dates=None): # Mad
         print(f"Error during Bitcoin data preprocessing/export: {ve}")
     except Exception as e:
         print(f"An error occurred during Bitcoin data export: {e}")
-
-# --- End New Export Functions ---
 
