@@ -5,8 +5,8 @@ import requests
 import plotly.graph_objects as go
 from datetime import datetime
 import io
-import matplotlib.pyplot as plt  # Added import
-import matplotlib.dates as mdates  # Added import for date formatting
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 def load_css(file_path):
     with open(file_path) as f:
@@ -15,7 +15,6 @@ def load_css(file_path):
 css_path = pathlib.Path("public/styles.css")
 load_css(css_path)
 
-# API Base URL
 BASE_URL = "http://127.0.0.1:6969"
 
 st.html("<h1 class='hero-animation'>Bitcoin Dashboard</h1>")
@@ -52,7 +51,6 @@ def get_prediction():
 
 dashboard_container = st.container()
 
-# Initialize session state for download data if it doesn't exist
 if 'preprocess_data_content' not in st.session_state:
     st.session_state.preprocess_data_content = None
 if 'preprocess_data_filename' not in st.session_state:
@@ -100,19 +98,16 @@ with dashboard_container:
             
             st.plotly_chart(fig, use_container_width=True)
             
-            # --- Add Matplotlib Open/Close Chart ---
             st.subheader("Daily Open vs Close Price")
             try:
-                # Ensure 'date' is datetime and set as index for resampling/aggregation
                 btc_daily_df = bitcoin_df.set_index('date')
                 
-                # Aggregate daily Open and Close prices
                 daily_agg = btc_daily_df['price'].resample('D').agg(['first', 'last'])
                 daily_agg.rename(columns={'first': 'Open', 'last': 'Close'}, inplace=True)
-                daily_agg.dropna(inplace=True)  # Remove days with no data if any
+                daily_agg.dropna(inplace=True)
                 
                 if not daily_agg.empty:
-                    fig_mpl, ax = plt.subplots(figsize=(15, 4))  # Create Matplotlib figure and axes
+                    fig_mpl, ax = plt.subplots(figsize=(15, 4))
                     ax.plot(daily_agg.index, daily_agg['Open'], label='Open', marker='o', linestyle='-', markersize=4)
                     ax.plot(daily_agg.index, daily_agg['Close'], label='Close', marker='x', linestyle='--', markersize=4)
                     
@@ -120,22 +115,20 @@ with dashboard_container:
                     ax.set_ylabel('Price (USD)')
                     ax.set_title('Bitcoin Daily Open vs Close Price')
                     
-                    # Improve date formatting on x-axis
                     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-                    ax.xaxis.set_major_locator(mdates.AutoDateLocator(maxticks=10))  # Auto-adjust number of ticks
+                    ax.xaxis.set_major_locator(mdates.AutoDateLocator(maxticks=10))
                     plt.xticks(rotation=45, ha='right')
                     
                     ax.legend()
-                    ax.grid(True, linestyle='--', alpha=0.6)  # Add grid
-                    plt.tight_layout()  # Adjust layout
+                    ax.grid(True, linestyle='--', alpha=0.6)
+                    plt.tight_layout()
                     
-                    st.pyplot(fig_mpl)  # Display Matplotlib figure in Streamlit
+                    st.pyplot(fig_mpl)
                 else:
                     st.warning("Could not generate daily Open/Close data.")
 
             except Exception as e:
                 st.error(f"Error generating Open/Close chart: {e}")
-            # --- End Matplotlib Chart ---
 
             if not bitcoin_df.empty:
                 latest_price = bitcoin_df['price'].iloc[-1]
@@ -154,24 +147,21 @@ with dashboard_container:
     st.caption(f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     if st.button("Refresh Data"):
-        # Clear download state on refresh
         st.session_state.preprocess_data_content = None
         st.session_state.preprocess_data_filename = None
         st.session_state.price_data_content = None
         st.session_state.price_data_filename = None
-        st.rerun()  # Rerun the script to refresh data
+        st.rerun()
 
-    # --- Download Data Section ---
     st.markdown("---") 
     st.subheader("Download Data")
     
     dl_col1, dl_col2 = st.columns(2)
 
     with dl_col1:
-        # Button to trigger the data fetch
-        if st.button("Prepare Preprocessed Sentiment Data (CSV)"):  # Changed button label
+        if st.button("Prepare Preprocessed Sentiment Data (CSV)"):
             try:
-                with st.spinner("Fetching preprocessed data..."):  # Add spinner
+                with st.spinner("Fetching preprocessed data..."):
                     download_response = requests.get(f"{BASE_URL}/download-preprocess-data")
                     if download_response.status_code == 200:
                         content_disposition = download_response.headers.get('content-disposition')
@@ -181,73 +171,59 @@ with dashboard_container:
                             if len(parts) > 1:
                                 filename = parts[1].strip('"')
                         
-                        # Store data in session state
                         st.session_state.preprocess_data_content = download_response.content
                         st.session_state.preprocess_data_filename = filename
-                        st.success("Preprocessed data is ready for download below.")  # Indicate readiness
+                        st.success("Preprocessed data is ready for download below.")
                     else:
-                        # Clear state on error
                         st.session_state.preprocess_data_content = None
                         st.session_state.preprocess_data_filename = None
                         st.error(f"Error fetching data for download: {download_response.status_code} - {download_response.text}")
             except Exception as e:
-                 # Clear state on error
                 st.session_state.preprocess_data_content = None
                 st.session_state.preprocess_data_filename = None
                 st.error(f"Error during preprocessed data download request: {str(e)}")
 
-        # Conditionally display the download button if data is ready
         if st.session_state.preprocess_data_content is not None:
             st.download_button(
                 label="Click here to download Preprocessed Data CSV",
                 data=st.session_state.preprocess_data_content,
                 file_name=st.session_state.preprocess_data_filename,
                 mime='text/csv',
-                key='download-preprocess-final'  # Use a different key if needed
-                # Optionally add on_click to clear state after download starts
-                # on_click=lambda: setattr(st.session_state, 'preprocess_data_content', None) 
+                key='download-preprocess-final'
             )
 
     with dl_col2:
-        # Button to trigger Bitcoin price data preparation
         if st.button("Prepare Bitcoin Price Data (CSV)"):
             if bitcoin_df is not None and not bitcoin_df.empty:
                 try:
-                    with st.spinner("Preparing price data..."):  # Add spinner
+                    with st.spinner("Preparing price data..."):
                         csv_buffer = io.StringIO()
                         bitcoin_df.to_csv(csv_buffer, index=False, encoding='utf-8')
                         csv_data = csv_buffer.getvalue()
                         
                         filename = f"bitcoin_price_last_30_days_{datetime.now().strftime('%Y%m%d')}.csv"
                         
-                        # Store data in session state
                         st.session_state.price_data_content = csv_data
                         st.session_state.price_data_filename = filename
-                        st.success("Bitcoin price data is ready for download below.")  # Indicate readiness
+                        st.success("Bitcoin price data is ready for download below.")
                 except Exception as e:
-                    # Clear state on error
                     st.session_state.price_data_content = None
                     st.session_state.price_data_filename = None
                     st.error(f"Error generating Bitcoin price CSV: {str(e)}")
             else:
-                # Clear state if data not available
                 st.session_state.price_data_content = None
                 st.session_state.price_data_filename = None
                 st.warning("Bitcoin price data is not available to prepare.")
 
-        # Conditionally display the download button if price data is ready
         if st.session_state.price_data_content is not None:
             st.download_button(
                 label="Click here to download Bitcoin Price CSV",
                 data=st.session_state.price_data_content,
                 file_name=st.session_state.price_data_filename,
                 mime='text/csv',
-                key='download-price-final'  # Use a different key if needed
-                # Optionally add on_click to clear state after download starts
-                # on_click=lambda: setattr(st.session_state, 'price_data_content', None)
+                key='download-price-final'
             )
     
-    # Separator before the prediction column
     st.markdown("---") 
 
     with col2:
